@@ -6,8 +6,6 @@ from api import bot_notify
 
 router = APIRouter()
 
-# Секрет из setWebhook — Telegram присылает его в каждом запросе, чтобы
-# отличить настоящие апдейты от чужих POST-запросов на этот же URL.
 WEBHOOK_SECRET = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
 APP_URL = os.environ.get("APP_URL", "")
 

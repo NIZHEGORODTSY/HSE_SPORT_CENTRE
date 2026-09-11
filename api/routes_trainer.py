@@ -139,7 +139,7 @@ async def get_attendance(session_id: int, user: dict = Depends(require_roles("tr
 
 
 class AttendanceIn(BaseModel):
-    marks: dict[int, str]  # student_id -> 'present' | 'absent' | 'unmarked'
+    marks: dict[int, str]
 
 
 @router.post("/api/trainer/sessions/{session_id}/attendance")

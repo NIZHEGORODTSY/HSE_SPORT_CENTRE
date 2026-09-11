@@ -13,11 +13,10 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 ADMIN_TG_IDS = {int(x) for x in os.environ.get("ADMIN_TG_IDS", "").split(",") if x.strip()}
 TRAINER_TG_IDS = {int(x) for x in os.environ.get("TRAINER_TG_IDS", "").split(",") if x.strip()}
 
-INIT_DATA_MAX_AGE = 24 * 60 * 60  # initData считается действительной сутки
+INIT_DATA_MAX_AGE = 24 * 60 * 60
 
 
 def validate_init_data(init_data: str) -> dict:
-    """Проверка подписи Telegram WebApp initData (HMAC-SHA256)."""
     if not init_data:
         raise HTTPException(status_code=401, detail="No initData")
 
@@ -41,8 +40,6 @@ def validate_init_data(init_data: str) -> dict:
 
 
 def _resolve_role(tg_id: int, current_role: str | None) -> str:
-    """Переменные окружения всегда могут повысить роль (бутстрап админов/тренеров),
-    но никогда не понижают роль, уже выданную вручную через /api/admin."""
     if tg_id in ADMIN_TG_IDS:
         return "admin"
     if current_role == "admin":

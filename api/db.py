@@ -10,9 +10,6 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
 @contextmanager
 def get_cursor(commit: bool = False):
-    """Короткоживущее соединение на один вызов — подходит для serverless.
-    Используйте pooled-connection строку Neon (хост с суффиксом -pooler),
-    иначе можно быстро упереться в лимит одновременных подключений Postgres."""
     conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
     try:
         with conn.cursor() as cur:
@@ -37,7 +34,6 @@ def query_one(sql: str, params: Iterable[Any] = ()) -> dict | None:
 
 
 def execute(sql: str, params: Iterable[Any] = ()) -> dict | None:
-    """Для INSERT/UPDATE/DELETE. Если запрос содержит RETURNING — вернёт строку результата."""
     with get_cursor(commit=True) as cur:
         cur.execute(sql, params)
         if cur.description:

@@ -17,7 +17,7 @@ async def send_message(chat_id: int, text: str, reply_markup: dict | None = None
         try:
             await client.post(API_URL, json=payload)
         except httpx.HTTPError:
-            pass  # уведомление — best effort, не должно ронять основной запрос
+            pass
 
 
 async def broadcast(chat_ids: list[int], text: str) -> None:

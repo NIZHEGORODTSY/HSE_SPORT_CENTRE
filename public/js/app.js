@@ -87,8 +87,6 @@ async function boot() {
   selectTab(first.id);
 }
 
-/* ---------------- СТУДЕНТ ---------------- */
-
 async function renderStudentSections() {
   view.innerHTML = `<div class="empty">Загрузка…</div>`;
   const sections = await Api.get("/api/sections");
@@ -167,8 +165,6 @@ async function renderStudentProfile() {
     ${attendanceHtml}
   `;
 }
-
-/* ---------------- ТРЕНЕР ---------------- */
 
 async function renderTrainerSections() {
   if (state.sessionId) return renderTrainerAttendance();
@@ -384,8 +380,6 @@ async function renderTrainerAttendance() {
   );
 }
 
-/* ---------------- АДМИН ---------------- */
-
 async function renderAdminSections() {
   view.innerHTML = `<div class="empty">Загрузка…</div>`;
   const [sections, trainers] = await Promise.all([
@@ -519,8 +513,6 @@ async function renderAdminUsers() {
     })
   );
 }
-
-/* ---------------- НОВОСТИ ---------------- */
 
 async function renderNews() {
   view.innerHTML = `<div class="empty">Загрузка…</div>`;

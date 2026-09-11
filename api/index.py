@@ -4,7 +4,7 @@ from pathlib import Path
 try:
     from dotenv import load_dotenv
 
-    load_dotenv()  # локальная разработка: подхватывает .env; на Vercel файла нет, вызов no-op
+    load_dotenv()
 except ImportError:
     pass
 
@@ -43,8 +43,6 @@ app.include_router(routes_admin.router)
 app.include_router(routes_news.router)
 app.include_router(routes_bot.router)
 
-# Раздача public/ нужна только для локального запуска (uvicorn api.index:app).
-# На Vercel статику отдаёт vercel.json, до этой функции такие запросы не доходят.
 _PUBLIC_DIR = Path(__file__).resolve().parent.parent / "public"
 if _PUBLIC_DIR.exists():
     app.mount("/", StaticFiles(directory=_PUBLIC_DIR, html=True), name="public")

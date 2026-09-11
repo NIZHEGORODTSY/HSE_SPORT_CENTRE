@@ -1,6 +1,3 @@
--- Схема БД для HSE Sport Centre Mini App (Postgres / Neon)
--- Выполнить один раз против базы, указанной в DATABASE_URL.
-
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     tg_id BIGINT UNIQUE NOT NULL,
@@ -19,17 +16,15 @@ CREATE TABLE IF NOT EXISTS sections (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Еженедельный шаблон расписания секции
 CREATE TABLE IF NOT EXISTS schedule_slots (
     id BIGSERIAL PRIMARY KEY,
     section_id BIGINT NOT NULL REFERENCES sections(id) ON DELETE CASCADE,
-    weekday SMALLINT NOT NULL CHECK (weekday BETWEEN 0 AND 6), -- 0=понедельник ... 6=воскресенье
+    weekday SMALLINT NOT NULL CHECK (weekday BETWEEN 0 AND 6),
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     location TEXT NOT NULL DEFAULT ''
 );
 
--- Конкретные занятия на определённую дату (генерируются из schedule_slots или создаются вручную)
 CREATE TABLE IF NOT EXISTS sessions (
     id BIGSERIAL PRIMARY KEY,
     section_id BIGINT NOT NULL REFERENCES sections(id) ON DELETE CASCADE,
