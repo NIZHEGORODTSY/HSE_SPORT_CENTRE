@@ -97,15 +97,24 @@ async function renderStudentSections() {
   view.innerHTML = sections
     .map((s) => {
       const full = s.taken >= s.capacity && !s.enrolled;
-      const schedule = s.schedule
-        .map((sl) => `${WEEKDAY_LABEL[sl.weekday]} ${sl.start_time.slice(0, 5)}–${sl.end_time.slice(0, 5)}${sl.location ? " · " + escapeHtml(sl.location) : ""}`)
-        .join("<br>");
+      const slotLabel = (sl) =>
+        `${WEEKDAY_LABEL[sl.weekday]} ${sl.start_time.slice(0, 5)}–${sl.end_time.slice(0, 5)}${sl.location ? " · " + escapeHtml(sl.location) : ""}`;
+      const schedule = s.schedule.map(slotLabel).join("<br>");
+      const needsSlotChoice = !s.enrolled && !full && s.schedule.length > 1;
       return `
         <div class="card">
           <h3>${escapeHtml(s.name)}</h3>
           <p>${escapeHtml(s.description || "")}</p>
           <p class="muted">Тренер: ${escapeHtml(s.trainer_name || "не назначен")}</p>
           ${schedule ? `<p class="muted">${schedule}</p>` : ""}
+          ${
+            needsSlotChoice
+              ? `<label>Время занятия</label>
+                 <select data-slot-for="${s.id}">
+                   ${s.schedule.map((sl) => `<option value="${sl.id}">${slotLabel(sl)}</option>`).join("")}
+                 </select>`
+              : ""
+          }
           <div class="row">
             <span class="muted">Мест занято: ${s.taken} / ${s.capacity}</span>
             ${
@@ -123,7 +132,9 @@ async function renderStudentSections() {
       const id = btn.dataset.id;
       try {
         if (btn.dataset.action === "enroll") {
-          await Api.post(`/api/sections/${id}/enroll`);
+          const slotSelect = view.querySelector(`[data-slot-for="${id}"]`);
+          const body = slotSelect ? { slot_id: Number(slotSelect.value) } : {};
+          await Api.post(`/api/sections/${id}/enroll`, body);
           showToast("Новая запись");
         } else {
           await Api.del(`/api/sections/${id}/enroll`);
@@ -146,10 +157,13 @@ async function renderStudentProfile() {
 
   const enrollmentsHtml = enrollments.length
     ? enrollments
-        .map(
-          (e) =>
-            `<div class="student-row"><span>${escapeHtml(e.name)}</span><span class="pill">Новая запись</span></div>`
-        )
+        .map((e) => {
+          const time =
+            e.weekday != null
+              ? `${WEEKDAY_LABEL[e.weekday]} ${e.start_time.slice(0, 5)}–${e.end_time.slice(0, 5)}`
+              : "";
+          return `<div class="student-row"><span>${escapeHtml(e.name)}${time ? " · " + time : ""}</span><span class="pill">Новая запись</span></div>`;
+        })
         .join("")
     : `<p class="muted">Нет активных записей</p>`;
 
@@ -265,7 +279,15 @@ async function renderTrainerSectionDetail() {
     <div class="section-header" style="margin-top:16px"><h3>Записанные студенты (${studentList.length})</h3></div>
     ${
       studentList.length
-        ? studentList.map((s) => `<div class="student-row"><span>${escapeHtml(s.full_name)}</span><span class="muted">${s.username ? "@" + escapeHtml(s.username) : ""}</span></div>`).join("")
+        ? studentList
+            .map((s) => {
+              const time =
+                s.weekday != null
+                  ? `${WEEKDAY_LABEL[s.weekday]} ${s.start_time.slice(0, 5)}–${s.end_time.slice(0, 5)}`
+                  : "";
+              return `<div class="student-row"><span>${escapeHtml(s.full_name)}${time ? " · " + time : ""}</span><span class="muted">${s.username ? "@" + escapeHtml(s.username) : ""}</span></div>`;
+            })
+            .join("")
         : `<p class="muted">Пока никто не записался</p>`
     }
   `;

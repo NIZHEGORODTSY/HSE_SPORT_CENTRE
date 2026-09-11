@@ -109,8 +109,11 @@ async def cancel_session(session_id: int, user: dict = Depends(require_roles("tr
 async def section_students(section_id: int, user: dict = Depends(require_roles("trainer", "admin"))):
     _assert_owns_section(section_id, user)
     return db.query_all(
-        """SELECT u.id, u.full_name, u.username, e.created_at AS enrolled_at
-           FROM enrollments e JOIN users u ON u.id = e.student_id
+        """SELECT u.id, u.full_name, u.username, e.created_at AS enrolled_at,
+                  sl.weekday, sl.start_time, sl.end_time
+           FROM enrollments e
+           JOIN users u ON u.id = e.student_id
+           LEFT JOIN schedule_slots sl ON sl.id = e.slot_id
            WHERE e.section_id = %s ORDER BY u.full_name""",
         (section_id,),
     )
@@ -126,8 +129,9 @@ async def get_attendance(session_id: int, user: dict = Depends(require_roles("tr
     students = db.query_all(
         """SELECT u.id AS student_id, u.full_name, u.username
            FROM enrollments e JOIN users u ON u.id = e.student_id
-           WHERE e.section_id = %s ORDER BY u.full_name""",
-        (section["id"],),
+           WHERE e.section_id = %s AND (e.slot_id = %s OR e.slot_id IS NULL)
+           ORDER BY u.full_name""",
+        (section["id"], session["slot_id"]),
     )
     marks = {
         row["student_id"]: row["status"]

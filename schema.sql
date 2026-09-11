@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS enrollments (
     id BIGSERIAL PRIMARY KEY,
     section_id BIGINT NOT NULL REFERENCES sections(id) ON DELETE CASCADE,
     student_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    slot_id BIGINT REFERENCES schedule_slots(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (section_id, student_id)
 );

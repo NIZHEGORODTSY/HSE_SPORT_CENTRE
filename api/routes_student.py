@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 from api import bot_notify, db
 from api.auth import get_current_user
@@ -22,15 +23,19 @@ async def list_sections(user: dict = Depends(get_current_user)):
     )
     for s in sections:
         s["schedule"] = db.query_all(
-            """SELECT weekday, start_time, end_time, location
+            """SELECT id, weekday, start_time, end_time, location
                FROM schedule_slots WHERE section_id = %s ORDER BY weekday, start_time""",
             (s["id"],),
         )
     return sections
 
 
+class EnrollIn(BaseModel):
+    slot_id: int | None = None
+
+
 @router.post("/api/sections/{section_id}/enroll")
-async def enroll(section_id: int, user: dict = Depends(get_current_user)):
+async def enroll(section_id: int, body: EnrollIn = EnrollIn(), user: dict = Depends(get_current_user)):
     section = db.query_one("SELECT * FROM sections WHERE id = %s", (section_id,))
     if not section:
         raise HTTPException(404, "Секция не найдена")
@@ -45,7 +50,19 @@ async def enroll(section_id: int, user: dict = Depends(get_current_user)):
     if already:
         raise HTTPException(400, "Вы уже записаны")
 
-    db.execute("INSERT INTO enrollments (section_id, student_id) VALUES (%s, %s)", (section_id, user["id"]))
+    slots = db.query_all("SELECT id FROM schedule_slots WHERE section_id = %s", (section_id,))
+    slot_id = None
+    if len(slots) > 1:
+        if body.slot_id is None or body.slot_id not in {s["id"] for s in slots}:
+            raise HTTPException(400, "Укажите время занятия из расписания секции")
+        slot_id = body.slot_id
+    elif len(slots) == 1:
+        slot_id = slots[0]["id"]
+
+    db.execute(
+        "INSERT INTO enrollments (section_id, student_id, slot_id) VALUES (%s, %s, %s)",
+        (section_id, user["id"], slot_id),
+    )
 
     if section["trainer_id"]:
         trainer = db.query_one("SELECT tg_id FROM users WHERE id = %s", (section["trainer_id"],))
@@ -79,8 +96,11 @@ async def cancel_enrollment(section_id: int, user: dict = Depends(get_current_us
 @router.get("/api/my/enrollments")
 async def my_enrollments(user: dict = Depends(get_current_user)):
     return db.query_all(
-        """SELECT s.id, s.name, s.description, e.created_at
-           FROM enrollments e JOIN sections s ON s.id = e.section_id
+        """SELECT s.id, s.name, s.description, e.created_at,
+                  sl.weekday, sl.start_time, sl.end_time
+           FROM enrollments e
+           JOIN sections s ON s.id = e.section_id
+           LEFT JOIN schedule_slots sl ON sl.id = e.slot_id
            WHERE e.student_id = %s ORDER BY e.created_at DESC""",
         (user["id"],),
     )
