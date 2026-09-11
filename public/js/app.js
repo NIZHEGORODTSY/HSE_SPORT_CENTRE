@@ -544,14 +544,18 @@ async function renderNews() {
     ${
       news.length
         ? news
-            .map(
-              (n) => `
+            .map((n) => {
+              const canDelete = state.user.role === "admin" || n.author_id === state.user.id;
+              return `
       <div class="card">
-        <h3>${escapeHtml(n.title)}</h3>
+        <div class="section-header">
+          <h3 style="margin:0">${escapeHtml(n.title)}</h3>
+          ${canDelete ? `<button class="btn small danger" data-del-news="${n.id}">Удалить</button>` : ""}
+        </div>
         <p>${escapeHtml(n.content)}</p>
         <p class="muted">${escapeHtml(n.author_name || "")} · ${new Date(n.created_at).toLocaleDateString("ru-RU")}</p>
-      </div>`
-            )
+      </div>`;
+            })
             .join("")
         : `<div class="empty">Новостей пока нет</div>`
     }
@@ -571,6 +575,17 @@ async function renderNews() {
       }
     });
   }
+
+  view.querySelectorAll("[data-del-news]").forEach((btn) =>
+    btn.addEventListener("click", async () => {
+      try {
+        await Api.del(`/api/news/${btn.dataset.delNews}`);
+        renderNews();
+      } catch (err) {
+        showToast(err.message);
+      }
+    })
+  );
 }
 
 boot();
