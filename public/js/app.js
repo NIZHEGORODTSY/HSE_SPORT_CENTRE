@@ -575,7 +575,8 @@ async function renderNews() {
       news.length
         ? news
             .map((n) => {
-              const canDelete = state.user.role === "admin" || n.author_id === state.user.id;
+              const canDelete =
+                state.user.role === "admin" || (state.user.role === "trainer" && n.author_id === state.user.id);
               return `
       <div class="card">
         <div class="section-header">
