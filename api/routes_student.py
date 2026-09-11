@@ -51,7 +51,8 @@ async def enroll(section_id: int, user: dict = Depends(get_current_user)):
         trainer = db.query_one("SELECT tg_id FROM users WHERE id = %s", (section["trainer_id"],))
         if trainer:
             await bot_notify.send_message(
-                trainer["tg_id"], f"Студент {user['full_name']} записался на секцию «{section['name']}»"
+                trainer["tg_id"],
+                f"\U0001f195 Новая запись\n\nСтудент {user['full_name']} записался на секцию «{section['name']}»",
             )
     return {"ok": True}
 

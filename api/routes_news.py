@@ -28,7 +28,10 @@ async def create_news(body: NewsIn, user: dict = Depends(require_roles("trainer"
         (body.title, body.content, user["id"]),
     )
     students = db.query_all("SELECT tg_id FROM users WHERE role = 'student'")
-    await bot_notify.broadcast([s["tg_id"] for s in students], f"\U0001f4f0 {body.title}\n\n{body.content}")
+    await bot_notify.broadcast(
+        [s["tg_id"] for s in students],
+        f"\U0001f4e2 Опубликована новость\n\n{body.title}\n\n{body.content}",
+    )
     return row
 
 

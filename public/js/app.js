@@ -124,7 +124,7 @@ async function renderStudentSections() {
       try {
         if (btn.dataset.action === "enroll") {
           await Api.post(`/api/sections/${id}/enroll`);
-          showToast("Вы записаны");
+          showToast("Новая запись");
         } else {
           await Api.del(`/api/sections/${id}/enroll`);
           showToast("Запись отменена");
@@ -145,7 +145,12 @@ async function renderStudentProfile() {
   ]);
 
   const enrollmentsHtml = enrollments.length
-    ? enrollments.map((e) => `<div class="student-row"><span>${escapeHtml(e.name)}</span></div>`).join("")
+    ? enrollments
+        .map(
+          (e) =>
+            `<div class="student-row"><span>${escapeHtml(e.name)}</span><span class="pill">Новая запись</span></div>`
+        )
+        .join("")
     : `<p class="muted">Нет активных записей</p>`;
 
   const attendanceHtml = attendance.length
@@ -579,6 +584,7 @@ async function renderNews() {
                 state.user.role === "admin" || (state.user.role === "trainer" && n.author_id === state.user.id);
               return `
       <div class="card">
+        <p class="pill">Опубликована новость</p>
         <div class="section-header">
           <h3 style="margin:0">${escapeHtml(n.title)}</h3>
           ${canDelete ? `<button class="btn small danger" data-del-news="${n.id}">Удалить</button>` : ""}
@@ -599,7 +605,7 @@ async function renderNews() {
       const fd = new FormData(e.target);
       try {
         await Api.post("/api/news", { title: fd.get("title"), content: fd.get("content") });
-        showToast("Опубликовано");
+        showToast("Опубликована новость");
         renderNews();
       } catch (err) {
         showToast(err.message);
