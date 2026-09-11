@@ -482,36 +482,74 @@ async function renderAdminUsers() {
   view.innerHTML = `<div class="empty">Загрузка…</div>`;
   const users = await Api.get("/api/admin/users");
 
-  view.innerHTML = users
-    .map(
-      (u) => `
+  view.innerHTML = `
     <div class="card">
-      <div class="row">
-        <div>
-          <h3 style="margin:0">${escapeHtml(u.full_name)}</h3>
-          <p class="muted" style="margin:2px 0 0">${u.username ? "@" + escapeHtml(u.username) : "id " + u.tg_id}</p>
-        </div>
-        <select data-role="${u.id}">
-          <option value="student" ${u.role === "student" ? "selected" : ""}>Студент</option>
-          <option value="trainer" ${u.role === "trainer" ? "selected" : ""}>Тренер</option>
-          <option value="admin" ${u.role === "admin" ? "selected" : ""}>Администратор</option>
-        </select>
-      </div>
-    </div>`
-    )
-    .join("");
+      <label>Поиск</label>
+      <input id="user-search" type="text" placeholder="Имя или @username">
+      <label>Роль</label>
+      <select id="user-role-filter">
+        <option value="">Все роли</option>
+        <option value="student">Студент</option>
+        <option value="trainer">Тренер</option>
+        <option value="admin">Администратор</option>
+      </select>
+    </div>
+    <div id="users-list"></div>
+  `;
 
-  view.querySelectorAll("[data-role]").forEach((sel) =>
-    sel.addEventListener("change", async () => {
-      try {
-        await Api.post(`/api/admin/users/${sel.dataset.role}/role`, { role: sel.value });
-        showToast("Роль обновлена");
-      } catch (err) {
-        showToast(err.message);
-        renderAdminUsers();
-      }
-    })
-  );
+  const listEl = document.getElementById("users-list");
+  const searchEl = document.getElementById("user-search");
+  const roleEl = document.getElementById("user-role-filter");
+
+  function renderList() {
+    const query = searchEl.value.trim().toLowerCase();
+    const roleFilter = roleEl.value;
+    const filtered = users.filter((u) => {
+      if (roleFilter && u.role !== roleFilter) return false;
+      if (!query) return true;
+      const haystack = `${u.full_name} ${u.username || ""}`.toLowerCase();
+      return haystack.includes(query);
+    });
+
+    listEl.innerHTML = filtered.length
+      ? filtered
+          .map(
+            (u) => `
+      <div class="card">
+        <div class="row">
+          <div>
+            <h3 style="margin:0">${escapeHtml(u.full_name)}</h3>
+            <p class="muted" style="margin:2px 0 0">${u.username ? "@" + escapeHtml(u.username) : "id " + u.tg_id}</p>
+          </div>
+          <select data-role="${u.id}">
+            <option value="student" ${u.role === "student" ? "selected" : ""}>Студент</option>
+            <option value="trainer" ${u.role === "trainer" ? "selected" : ""}>Тренер</option>
+            <option value="admin" ${u.role === "admin" ? "selected" : ""}>Администратор</option>
+          </select>
+        </div>
+      </div>`
+          )
+          .join("")
+      : `<div class="empty">Никого не нашлось</div>`;
+
+    listEl.querySelectorAll("[data-role]").forEach((sel) =>
+      sel.addEventListener("change", async () => {
+        try {
+          await Api.post(`/api/admin/users/${sel.dataset.role}/role`, { role: sel.value });
+          const u = users.find((x) => x.id === Number(sel.dataset.role));
+          if (u) u.role = sel.value;
+          showToast("Роль обновлена");
+        } catch (err) {
+          showToast(err.message);
+          renderList();
+        }
+      })
+    );
+  }
+
+  searchEl.addEventListener("input", renderList);
+  roleEl.addEventListener("change", renderList);
+  renderList();
 }
 
 async function renderNews() {
