@@ -48,20 +48,24 @@ requirements.txt
    psql "$DATABASE_URL" -f schema.sql
    ```
 2. Скопируйте `.env.example` в `.env` и заполните `BOT_TOKEN`, `DATABASE_URL`, `ADMIN_TG_IDS`.
-3. Backend:
+3. Установите зависимости и запустите один сервер — он отдаёт и `/api/*`, и статику из `public/`
+   (раздача статики через FastAPI включена только для локального дев-режима, см. `api/index.py`):
    ```bash
    pip install -r requirements.txt uvicorn python-dotenv
    uvicorn api.index:app --reload --port 8000
    ```
    (переменные окружения должны быть выставлены в среде — например через `set -a; source .env; set +a` в bash
    или `Get-Content .env | ForEach-Object { ... }` в PowerShell, либо любой удобный dotenv-загрузчик)
-4. Frontend (статика, любой простой сервер):
+4. Откройте `http://localhost:8000` — увидите интерфейс, но `Telegram.WebApp.initData` будет пустым
+   (нет реального Telegram-контекста), поэтому `/api/me` ответит 401. Это нормально для проверки вёрстки/JS.
+5. **Чтобы протестировать реально, как в Telegram** (с настоящим `initData`), локальный сервер нужно
+   пробросить наружу по HTTPS — Telegram не откроет `http://localhost`:
    ```bash
-   python -m http.server 5173 --directory public
+   ngrok http 8000
    ```
-5. Так как порты разные — это кросс-доменный запрос, CORS уже открыт (`ALLOWED_ORIGIN=*` по умолчанию).
-   Но напрямую в браузере `Telegram.WebApp.initData` будет пустым (нет реального Telegram-контекста) —
-   для полноценной проверки авторизации нужен реальный запуск внутри Telegram (см. ниже).
+   Полученный `https://xxxx.ngrok-free.app` временно укажите в @BotFather как URL кнопки меню
+   (см. раздел ниже) — и открывайте бота в настоящем Telegram-клиенте. Так `initData` будет подписан
+   настоящим Telegram и пройдёт валидацию в `api/auth.py`. После теста верните в BotFather боевой URL.
 
 ## Деплой на Vercel
 
