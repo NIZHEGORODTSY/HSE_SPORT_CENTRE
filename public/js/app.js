@@ -10,6 +10,7 @@ const tabsEl = document.getElementById("tabs");
 const roleBadge = document.getElementById("role-badge");
 
 const ROLE_LABEL = { student: "Студент", trainer: "Тренер", admin: "Администратор" };
+const ATTENDANCE_LABEL = { present: "Был", absent: "Не был", unmarked: "Не отмечено" };
 const WEEKDAY_LABEL = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
 function escapeHtml(str) {
@@ -171,7 +172,7 @@ async function renderStudentProfile() {
     ? attendance
         .map(
           (a) =>
-            `<div class="student-row"><span>${a.session_date} · ${escapeHtml(a.section_name)}</span><span class="pill ${a.status}">${a.status}</span></div>`
+            `<div class="student-row"><span>${a.session_date} · ${escapeHtml(a.section_name)}</span><span class="pill ${a.status}">${ATTENDANCE_LABEL[a.status] || a.status}</span></div>`
         )
         .join("")
     : `<p class="muted">Пока нет отметок посещаемости</p>`;
