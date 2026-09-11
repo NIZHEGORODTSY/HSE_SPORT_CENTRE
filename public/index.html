@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Спортивные секции НИУ ВШЭ</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <h1>Спорт ВШЭ</h1>
+      <span id="role-badge" class="badge"></span>
+    </header>
+
+    <main id="view"></main>
+
+    <nav id="tabs" class="tabs"></nav>
+  </div>
+
+  <template id="tpl-toast">
+    <div class="toast"></div>
+  </template>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
