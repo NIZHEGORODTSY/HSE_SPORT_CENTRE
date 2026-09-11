@@ -12,7 +12,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from api import routes_admin, routes_news, routes_student, routes_trainer
+from api import routes_admin, routes_bot, routes_news, routes_student, routes_trainer
 from api.auth import get_current_user
 
 app = FastAPI(title="HSE Sport Centre API")
@@ -41,6 +41,7 @@ app.include_router(routes_student.router)
 app.include_router(routes_trainer.router)
 app.include_router(routes_admin.router)
 app.include_router(routes_news.router)
+app.include_router(routes_bot.router)
 
 # Раздача public/ нужна только для локального запуска (uvicorn api.index:app).
 # На Vercel статику отдаёт vercel.json, до этой функции такие запросы не доходят.

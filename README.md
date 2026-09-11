@@ -89,6 +89,8 @@ Project Settings → Environment Variables:
 | `ADMIN_TG_IDS` | telegram id первого администратора |
 | `TRAINER_TG_IDS` | telegram id тренеров (опционально, дальше можно назначать из панели администратора) |
 | `ALLOWED_ORIGIN` | можно оставить `*`, т.к. фронт и API на одном домене |
+| `APP_URL` | URL вашего Vercel-деплоя — используется в кнопке под `/start` |
+| `TELEGRAM_WEBHOOK_SECRET` | случайная строка, см. ниже |
 
 ## Настройка в @BotFather
 
@@ -98,6 +100,25 @@ Project Settings → Environment Variables:
 3. Там же можно настроить `/setdomain` для Web App, если планируете использовать
    `Telegram.Login` виджет отдельно (для чистого Mini App через меню-кнопку это не обязательно).
 4. Откройте бота в Telegram → кнопка меню откроет Mini App.
+
+## Ответ на /start
+
+Бэкенд умеет отвечать на `/start` инструкцией с кнопкой, открывающей Mini App
+(`api/routes_bot.py`), но Telegram должен знать, куда слать апдейты — для этого
+**один раз** регистрируется webhook (выполнить после того, как заданы `APP_URL`
+и `TELEGRAM_WEBHOOK_SECRET` в Vercel и сделан деплой):
+
+```bash
+curl -X POST "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook" \
+  -d "url=https://<ваш-домен>/api/telegram/webhook" \
+  -d "secret_token=<TELEGRAM_WEBHOOK_SECRET>"
+```
+
+Проверить, что вебхук зарегистрирован:
+
+```bash
+curl "https://api.telegram.org/bot<BOT_TOKEN>/getWebhookInfo"
+```
 
 ## Подводные камни
 
