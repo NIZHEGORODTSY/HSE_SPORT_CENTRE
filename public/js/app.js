@@ -163,7 +163,7 @@ async function renderStudentProfile() {
             e.weekday != null
               ? `${WEEKDAY_LABEL[e.weekday]} ${e.start_time.slice(0, 5)}–${e.end_time.slice(0, 5)}`
               : "";
-          return `<div class="student-row"><span>${escapeHtml(e.name)}${time ? " · " + time : ""}</span><span class="pill">Новая запись</span></div>`;
+          return `<div class="student-row"><span>${escapeHtml(e.name)}${time ? " · " + time : ""}</span><span class="pill new">Новая запись</span></div>`;
         })
         .join("")
     : `<p class="muted">Нет активных записей</p>`;
@@ -607,7 +607,7 @@ async function renderNews() {
                 state.user.role === "admin" || (state.user.role === "trainer" && n.author_id === state.user.id);
               return `
       <div class="card">
-        <p class="pill">Опубликована новость</p>
+        <p class="pill new">Опубликована новость</p>
         <div class="section-header">
           <h3 style="margin:0">${escapeHtml(n.title)}</h3>
           ${canDelete ? `<button class="btn small danger" data-del-news="${n.id}">Удалить</button>` : ""}
